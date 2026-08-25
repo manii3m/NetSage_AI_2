@@ -26,4 +26,4 @@ share/python-wheels/
 *.egg
 
 # Streamlit
-.streamlit/
+
