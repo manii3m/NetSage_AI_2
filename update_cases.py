@@ -1,0 +1,40 @@
+import pandas as pd
+from io import StringIO
+
+data = """case_id,symptom,topology_note,show_command_output,expected_fault,osi_layer,concept_tag,severity
+NET-001,PC1 cannot reach Server1 in VLAN 30,PC1 on Fa0/1 (VLAN 10); Gateway on Router Sub-interface Gi0/0.10,GigabitEthernet0/0.10 is administratively down line protocol is down,Sub-interface administratively down,Layer 3,Inter-VLAN Routing,High
+NET-002,PC2 assigned 169.254.x.x APIPA address,PC2 connected to Switch SW1 Port Fa0/2; DHCP Server located on Router R1,ip dhcp pool LAN_POOL; total addresses 10; leased 10; zero available,DHCP Scope Pool Exhaustion,Layer 7,DHCP,High
+NET-003,PC1 can ping 8.8.8.8 but cannot open google.com,PC1 configured with static IP; DNS Server set to 192.168.1.5,no ip domain-lookup; ip name-server 192.168.1.5 not active,DNS service disabled on client subnet gateway,Layer 7,DNS,Medium
+NET-004,R1 and R2 fail to form OSPF adjacency,R1 Gi0/0 (10.0.0.1/24) connected to R2 Gi0/0 (10.0.0.2/24),R1: ip ospf hello-interval 10; R2: ip ospf hello-interval 20,OSPF Hello Timer Mismatch,Layer 3,OSPF,High
+NET-005,Web server port 80 unreachable from Sales subnet,Sales PC on 192.168.10.0/24; Web Server on 10.0.0.10/24,access-list 101 deny tcp 192.168.10.0 0.0.0.255 host 10.0.0.10 eq 80,Extended ACL blocking HTTP traffic,Layer 4,ACL,Medium
+NET-006,Internal PCs cannot access external internet,Router R1 WAN interface connected to ISP; LAN on 192.168.1.0/24,ip nat inside source list 1 interface Gi0/1 (missing overload keyword),NAT Overload/PAT keyword missing,Layer 3,NAT,High
+NET-007,Guest Wi-Fi users can access internal private servers,Guest AP connected to Switch Fa0/12 tagged VLAN 50,Extended IP access list GUEST_ACL: 10 permit ip 192.168.50.0 0.0.0.255 any,Overly permissive ACL on Guest VLAN,Layer 3/4,Wireless/ACL,High
+NET-008,Trunk link between SW1 and SW2 failing to carry VLAN 20 traffic,SW1 Fa0/24 connected to SW2 Fa0/24,Switchport trunk allowed vlan 10 30 40 (VLAN 20 missing from allowed list),VLAN pruned/missing from trunk allowed list,Layer 2,VLAN Trunking,Medium
+NET-009,PC3 gets correct IP but cannot ping default gateway 192.168.1.1,PC3 IP 192.168.1.50/24; Gateway set to 192.168.1.254 on PC,IP configuration shows Default Gateway 192.168.1.254 on Host,Host Default Gateway IP Misconfiguration,Layer 3,Addressing,High
+NET-010,Switch SW1 management interface unreachable via SSH,SW1 VLAN 1 interface IP 192.168.1.2/24,interface Vlan1; ip address 192.168.1.2 255.255.255.0; shutdown,Management SVI interface in shutdown state,Layer 2,Switching,Low
+NET-011,PC1 and PC2 in VLAN 10 cannot ping each other across switch,PC1 on SW1 Fa0/5; PC2 on SW2 Fa0/5,SW1 Fa0/24: switchport mode access; SW2 Fa0/24: switchport mode access,Inter-switch link configured as access instead of trunk,Layer 2,VLAN Trunking,High
+NET-012,Branch router R2 missing routes to Head Office networks,R2 connected to R1 via Serial 0/1/0,router ospf 1; network 10.0.0.0 0.255.255.255 area 0; passive-interface Serial0/1/0,Passive interface enabled on active OSPF link,Layer 3,OSPF,High
+NET-013,Finance PC cannot access Finance Server in VLAN 40,Finance PC on Fa0/10 (VLAN 40); Switch port configuration check,interface FastEthernet0/10; switchport access vlan 14,Switch port assigned to wrong access VLAN,Layer 2,VLAN,Medium
+NET-014,DHCP Relay failing for remote branch subnet,Branch router R2 Gi0/0 receives DHCP Discover from clients,interface GigabitEthernet0/0; ip address 192.168.20.1 255.255.255.0 (missing ip helper-address),Missing IP Helper-Address for DHCP Relay,Layer 7,DHCP,High
+NET-015,Static route traffic dropping intermittently,Router R1 static route configured towards Router R2,ip route 172.16.0.0 255.255.0.0 10.0.0.5 (Next-hop IP 10.0.0.5 unreachable),Invalid static route next-hop IP address,Layer 3,Static Routing,High
+NET-016,FTP connections to File Server timing out,Client on 192.168.1.0/24; Server on 10.0.0.25,access-list 100 permit tcp 192.168.1.0 0.0.0.255 host 10.0.0.25 eq 20 (missing port 21),ACL missing FTP control port 21 permit rule,Layer 4,ACL,Medium
+NET-017,Static NAT mapping for Internal Web Server not working,Public IP 203.0.113.10 mapped to Private IP 192.168.1.100,ip nat inside source static 192.168.1.100 203.0.113.10; interface Gi0/0 missing ip nat inside,NAT interface direction missing on internal interface,Layer 3,NAT,High
+NET-018,Wireless clients unable to authenticate to WPA2 Enterprise,RADIUS Server on 10.0.0.50; WLC managing APs,radius-server host 10.0.0.50 key incorrect_secret_key,RADIUS Shared Secret Mismatch,Layer 7,Wireless,High
+NET-019,Native VLAN mismatch warnings flooding switch logs,SW1 Fa0/1 connected to SW2 Fa0/1 trunk link,SW1: switchport trunk native vlan 10; SW2: switchport trunk native vlan 99,Native VLAN Mismatch on trunk link,Layer 2,VLAN Trunking,Low
+NET-020,PC unable to communicate with hosts outside local subnet,PC IP 10.1.1.50/28; Default Gateway 10.1.1.30/28,IP 10.1.1.50 mask 255.255.255.240; Gateway 10.1.1.30 (Outside subnet boundary),Default Gateway outside client subnet range,Layer 3,Subnetting,High
+NET-021,OSPF route redistribution failing between OSPF and EIGRP,Router R1 running OSPF 1 and EIGRP 100,router ospf 1; redistribute eigrp 100 (missing subnets keyword),OSPF redistribution missing subnets flag,Layer 3,OSPF,Medium
+NET-022,Users unable to reach external HTTPS sites,Edge Firewall filtering outbound traffic,access-list OUTBOUND permit tcp any any eq 80 (missing port 443),ACL blocking SSL/TLS port 443,Layer 4,ACL,Medium
+NET-023,Duplicate IP address conflict detected on LAN,Host A and Host B statically configured with same IP,Log: %IP-4-DUP_ADDR: Duplicate address 192.168.1.100 on FastEthernet0/1,Duplicate IP Address Assignment,Layer 3,Addressing,High
+NET-024,VTP updates not propagating across switches,SW1 configured as VTP Server; SW2 configured as VTP Client,SW1: vtp domain CORP; SW2: vtp domain corp (case sensitive mismatch),VTP Domain Name Mismatch ,Layer 2,VTP,Medium
+NET-025,Dynamic ARP Inspection (DAI) dropping legitimate traffic,Switch SW1 DAI enabled on VLAN 10,interface GigabitEthernet0/1; ip arp inspection trust missing on uplink,Uplink trunk port not configured as DAI trusted,Layer 2,Security/DAI,High
+NET-026,Port Security putting switch port into err-disabled state,Switch Fa0/10 port security configured with max 1 MAC address,Log: %PORT_SECURITY-2-PSECURE_VIOLATION: Security violation occurred on port Fa0/10,Port security violation limit exceeded,Layer 2,Port Security,Medium
+NET-027,HSRP Standby router continuously taking over Active role,R1 (Primary) and R2 (Secondary) in HSRP Group 1,R1: standby 1 priority 110 hello 3; R2: standby 1 priority 100 hello 10,HSRP Timer Mismatch between peers,Layer 3,HSRP,Medium
+NET-028,Router sub-interface encapsulation missing dot1q tag,Router R1 sub-interface Gi0/0.20,interface GigabitEthernet0/0.20; ip address 192.168.20.1 255.255.255.0 (missing encapsulation dot1Q 20),Missing 802.1Q encapsulation on sub-interface,Layer 2/3,Inter-VLAN Routing,High
+NET-029,IPv6 SLAAC clients not receiving prefix information,Router R1 Gi0/0 configured for IPv6,interface GigabitEthernet0/0; ipv6 nd suppress-ra enabled,IPv6 Router Advertisements (RA) suppressed,Layer 3,IPv6,Medium
+NET-030,CDP neighbor discovery failing between Cisco devices,R1 connected directly to SW1 via Gi0/0,no cdp run globally active in running configuration,CDP disabled globally on device,Layer 2,CDP,Low
+"""
+
+df = pd.read_csv(StringIO(data))
+df['severity'] = df['severity'].str.upper()
+df.to_csv('data/cases.csv', index=False)
+print("Updated cases.csv successfully.")

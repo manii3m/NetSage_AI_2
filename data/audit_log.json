@@ -1,0 +1,85 @@
+[
+    {
+        "timestamp": "2026-08-25T20:08:38.072326",
+        "case_id": "NET-006",
+        "ai_diagnosis": {
+            "root_cause": "The NAT configuration on Router R1 is missing the 'overload' keyword, preventing Port Address Translation (PAT) and stopping multiple internal PCs from sharing the Gi0/1 WAN interface IP address.",
+            "osi_layer": "Layer 3",
+            "confidence": 95.0,
+            "evidence": [
+                "Show Command Output: ip nat inside source list 1 interface Gi0/1 (missing overload keyword)",
+                "Deterministic Rule Findings: R012 (NAT_INDICATORS) - evidence: missing overload keyword"
+            ],
+            "next_command": [
+                "show running-config | include ip nat",
+                "show ip nat translations"
+            ],
+            "fix_steps": [
+                "configure terminal",
+                "no ip nat inside source list 1 interface Gi0/1",
+                "ip nat inside source list 1 interface Gi0/1 overload"
+            ],
+            "reasoning_summary": "Without the 'overload' keyword on the NAT inside source configuration, the router is configured for static/dynamic NAT instead of PAT. Because the interface is specified directly, only a single internal host can translate to that IP address at a time. Adding the 'overload' keyword enables PAT, allowing the entire 192.168.1.0/24 LAN to share the Gi0/1 IP address for internet access.",
+            "safety_note": "Human review required before applying any fix.",
+            "is_demo": false
+        },
+        "rule_findings": {
+            "status": "ERRORS_DETECTED",
+            "findings": [
+                {
+                    "rule_id": "R012",
+                    "type": "NAT_INDICATORS",
+                    "severity": "HIGH",
+                    "evidence": "missing overload keyword",
+                    "recommendation": "Add 'overload' keyword for PAT or expand NAT pool/verify NAT inside/outside interface assignments."
+                }
+            ]
+        },
+        "decision": "EDIT",
+        "edited_diagnosis": {
+            "root_cause": "The NAT configuration on Router R1 is missing the 'overload' keyword, preventing Port Address Translation (PAT) and stopping multiple internal PCs from sharing the Gi0/1 WAN interface IP address.",
+            "next_command": [
+                "show running-config | include ip nat",
+                "show ip nat translations"
+            ],
+            "fix_steps": [
+                "configure terminal",
+                "no ip nat inside source list 1 interface Gi0/1",
+                "ip nat inside source list 1 interface Gi0/1 overload"
+            ]
+        },
+        "reviewer_comment": ""
+    },
+    {
+        "timestamp": "2026-08-25T20:10:02.161544",
+        "case_id": "NET-028",
+        "ai_diagnosis": {
+            "root_cause": "The sub-interface GigabitEthernet0/0.20 on router R1 is configured with an IP address but lacks the required 802.1Q encapsulation configuration ('encapsulation dot1Q 20'), which is necessary for the interface to process tagged VLAN 20 traffic.",
+            "osi_layer": "Layer 2",
+            "confidence": 95.0,
+            "evidence": [
+                "interface GigabitEthernet0/0.20; ip address 192.168.20.1 255.255.255.0 (missing encapsulation dot1Q 20)"
+            ],
+            "next_command": [
+                "show running-config interface GigabitEthernet0/0.20",
+                "show ip interface brief"
+            ],
+            "fix_steps": [
+                "configure terminal",
+                "interface GigabitEthernet0/0.20",
+                "encapsulation dot1Q 20",
+                "ip address 192.168.20.1 255.255.255.0"
+            ],
+            "reasoning_summary": "A router sub-interface requires a defined encapsulation method (e.g., 802.1Q) to bind it to a specific VLAN tag. Without the 'encapsulation dot1Q <vlan-id>' command, the sub-interface cannot function properly and may not correctly route traffic. The provided command output explicitly shows the sub-interface missing this line.",
+            "safety_note": "Human review required before applying any fix.",
+            "is_demo": false
+        },
+        "rule_findings": {
+            "status": "PASS",
+            "findings": []
+        },
+        "decision": "APPROVE",
+        "edited_diagnosis": null,
+        "reviewer_comment": ""
+    }
+]
