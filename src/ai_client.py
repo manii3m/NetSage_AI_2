@@ -5,6 +5,13 @@ from pathlib import Path
 
 def get_diagnosis(case_data, checker_findings):
     api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("GEMINI_API_KEY")
+        except Exception:
+            pass
+            
     if not api_key or api_key.strip() == "" or api_key == "your_gemini_api_key_here":
         return get_mock_diagnosis(case_data, checker_findings)
 
