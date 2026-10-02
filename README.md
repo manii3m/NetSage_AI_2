@@ -12,6 +12,7 @@
 **Team Members:**
 - **Mayank Vishwakarma** (Team Lead & Backend Developer)
 - **Deepak Mishra** (Integration & Testing Developer)
+- **Aditya Shukla** (Frontend & Deployement)
 
 **College:** Lakshmi Narain College Of Technology And Excellence Bhopal (M.P.)  
 **Technology Track:** AI Track  
